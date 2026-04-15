@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KASIS JOURNEY TOOL</title>
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Noto+Serif+KR:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* 디자인은 절대 건드리지 않았습니다 */
+        body { background-color: #433b2b; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: 'sans-serif'; color: #f2e9d5; }
+        .main-wrapper { display: flex; flex-direction: column; width: 90%; max-width: 600px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 10px; }
+        .top-link { text-decoration: none; color: #e9bd5f; font-size: 0.8em; transition: 0.3s; display: flex; align-items: center; gap: 5px; }
+        .top-link:hover { color: #f2e9d5; }
+        .music-ctrl { display: flex; gap: 10px; }
+        .music-btn { background: none; border: 1px solid #e9bd5f; color: #e9bd5f; border-radius: 12px; padding: 4px 10px; font-size: 0.75em; cursor: pointer; transition: 0.3s; }
+        .music-btn:hover { background: #e9bd5f; color: #433b2b; }
+        .container { background-color: #8c734b; width: 100%; padding: 30px; border-radius: 40px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); box-sizing: border-box; }
+        .star { position: absolute; color: #e9bd5f; font-size: 24px; }
+        h2 { text-align: center; color: #e9bd5f; margin-bottom: 10px; font-size: 0.8em; margin-top: 10px; }
+        .chars { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .char-box { text-align: center; width: 45%; }
+        .char-box h3 { font-family: 'Noto Serif KR', serif; margin-bottom: 10px; font-size: 1.4em; color: #f2e9d5; }
+        .stat { color: #e9bd5f; font-size: 0.85em; display: inline-block; margin: 2px 5px; }
+        .btns { display: flex; justify-content: center; gap: 8px; margin: 25px 0; flex-wrap: wrap; }
+        button { background-color: #4a3f35; color: #f2e9d5; border: none; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 0.7em; transition: 0.3s; }
+        button:hover { background-color: #684321; transform: translateY(-2px); }
+        #log-area { background-color: rgba(0,0,0,0.2); height: 300px; border-radius: 25px; padding: 20px; overflow-y: auto; font-size: 0.95em; line-height: 1.7; border: 1px solid #bfa37e; box-sizing: border-box; scrollbar-gutter: stable; }
+        #log-area::-webkit-scrollbar { width: 8px; }
+        #log-area::-webkit-scrollbar-thumb { background: #bfa37e; border-radius: 10px; }
+        .log-entry { margin-bottom: 15px; border-bottom: 1px solid rgba(242, 233, 213, 0.1); padding-bottom: 10px; word-break: keep-all; }
+        .success { color: #82ff82; font-weight: bold; }
+        .fail { color: #ff8282; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <div class="top-bar">
+            <a href="https://docs.google.com/spreadsheets/d/1su8o6eRwk0pITgrzDUEoo5odbvttALJgM1RMSXEgBLo/edit?usp=sharing" class="top-link" target="_blank">⚔️ 스프레드시트로 이동</a>
+            <div class="music-ctrl">
+                <button class="music-btn" onclick="playMusic()">▶ Play</button>
+                <button class="music-btn" onclick="stopMusic()">■ Stop</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="star" style="top:25px; left:25px;">✷</div><div class="star" style="top:25px; right:25px;">✷</div>
+            <h2>여정에 오신 것을 환영합니다...</h2>
+
+            <div class="chars">
+                <div class="char-box">
+                    <h3>이실 투크</h3>
+                    <div class="stat">🛡️생존 [3]</div> <div class="stat">⚔️무력 [3]</div> <div class="stat">🐺기민 [5]</div><br>
+                    <div class="stat">📖통찰 [1]</div> <div class="stat">🤝교섭 [4]</div>
+                </div>
+                <div class="char-box">
+                    <h3>카시르</h3>
+                    <div class="stat">🛡️생존 [3]</div> <div class="stat">⚔️무력 [2]</div> <div class="stat">🐺기민 [5]</div><br>
+                    <div class="stat">📖통찰 [1]</div> <div class="stat">🤝교섭 [1]</div>
+                </div>
+            </div>
+
+            <div class="btns">
+                <button onclick="showGuide()">스탯가이드</button>
+                <button onclick="generateScene()">장면생성</button>
+                <button onclick="generateTarget()">목표값생성</button>
+                <button onclick="rollDice('이실 투크')">이실 주사위</button>
+                <button onclick="rollDice('카시르')">카시르 주사위</button>
+                <button onclick="clearLogs()" style="background-color: #632a2a;">로그 초기화</button>
+            </div>
+
+            <div id="log-area"></div>
+        </div>
+    </div>
+
+    <div id="player" style="display:none;"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+    <script>
+        // 1. 가져오신 설정값 붙여넣기
+        const firebaseConfig = {
+            apiKey: "AIzaSyDzefWdydOe9uraAu0BbTl0EHrQY3aVf1U",
+            authDomain: "kasis-tool.firebaseapp.com",
+            databaseURL: "https://kasis-tool-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kasis-tool",
+            storageBucket: "kasis-tool.firebasestorage.app",
+            messagingSenderId: "313408061047",
+            appId: "1:313408061047:web:853dcaf35f62f962f55072"
+        };
+
+        // Firebase 시작
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+// 2. 유튜브 설정
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', { 
+                height: '0', 
+                width: '0', 
+                videoId: 'QrCfUga8AbE',
+                playerVars: { 
+                    'autoplay': 0, 
+                    'loop': 1, 
+                    'playlist': 'QrCfUga8AbE',
+                    'controls': 0,
+                    'disablekb': 1
+                },
+                events: { 
+                    'onStateChange': onPlayerStateChange,
+                    'onReady': onPlayerReady
+                } 
+            });
+        }
+
+        function onPlayerReady(event) {
+            // 플레이어가 준비되었을 때의 설정 (필요 시)
+        }
+
+        function onPlayerStateChange(event) {
+            // 영상이 끝났을 때(YT.PlayerState.ENDED = 0) 강제로 다시 재생
+            if (event.data === YT.PlayerState.ENDED) {
+                player.playVideo();
+            }
+        }
+
+        function playMusic() { player?.playVideo(); }
+        function stopMusic() { player?.pauseVideo(); }
+
+        // 3. 게임 로직 및 실시간 연동
+        const statData = {
+            "이실 투크": { "생존": 3, "무력": 3, "기민": 5, "통찰": 1, "교섭": 4 },
+            "카시르": { "생존": 3, "무력": 2, "기민": 5, "통찰": 1, "교섭": 1 }
+        };
+        let currentGoal = null;
+
+        // DB에서 데이터 실시간으로 받아오기
+        db.ref('currentGoal').on('value', (snap) => { currentGoal = snap.val(); });
+        db.ref('logs').limitToLast(30).on('value', (snap) => {
+            const logArea = document.getElementById('log-area');
+            logArea.innerHTML = '';
+            const data = snap.val();
+            if(data) {
+                Object.values(data).reverse().forEach(log => {
+                    const entry = document.createElement('div');
+                    entry.className = 'log-entry';
+                    entry.innerHTML = log;
+                    logArea.appendChild(entry);
+                });
+            }
+        });
+
+        function pushLog(msg) { db.ref('logs').push(msg); }
+
+        function generateScene() {
+            const places = [
+                "📍강철 갈고리: 과거 드래곤과의 전쟁 때 전초기지로 쓰였던 용병 연합의 자치 구역입니다. 법보다 계약이 우선시되는 곳입니다. 임무를 배정받거나, 새로운 동료를 구하기 위해 대륙의 모든 용병이 모여들어 항상 북적이고 시끄러운 술집들이 즐비합니다.",
+                "📍비명 지르는 협곡: 바람 소리가 비명처럼 들리는 좁고 깊은 협곡 지대입니다. 드래곤의 서식지로 알려져 있으며, 지형이 험해 매복 공격이 자주 일어나지만 대륙을 가로지르는 가장 빠른 이동 경로입니다.",
+                "📍성도 헬리오스: '태양'을 추앙하는 대륙의 심장부입니다. 왕궁과 대대로 혈통을 이어온 고위 귀족들이 거주합니다. 특별한 통행증이나 귀족의 보증 없이는 입성조차 불가능하며, 하층민의 출입을 철저히 금기시하는 폐쇄적인 공간입니다.",
+                "📍자유도시 램파트: 절벽 위에 세워진 난공불락의 상업 도시입니다. 지형적 이점을 이용해 단 한 번도 침공받지 않은 역사를 자랑하며, 비싼 의뢰비를 지급하는 상단이 모여 있습니다. 모든 문화와 유행은 램파트에서 시작됩니다.",
+                "📍침묵의 늪 칼리굴라: 발을 들이는 순간 마력이 중화되는 특수한 이끼가 가득한 습지입니다. 희귀한 약초가 자생하고 있어 마법사들에게는 가장 위험한 장소인 동시에 가장 매력적인 장소입니다.",
+                "📍철의요람 아이언홀드: 활화산 내부에 건설된 드워프들의 거주지입니다. 사방에 용암이 흐르며 공기는 숨이 막힐 듯 뜨겁지만, 대륙 최고의 무기와 갑옷이 이곳에서 제련됩니다. 외부인은 입구 근처의 열기조차 견디기 힘든 가혹한 환경입니다.",
+                "📍황금의 길: 겉보기에는 아름다운 황금빛 사막처럼 보이지만, 무엇이든 집어삼키는 끝없는 유사가 도사리는 죽음의 땅입니다. 전설에 따르면 모래 아래에 고대 왕국의 유적이 잠겨 있으며, 폭풍이 부는 날에만 그 입구가 드러난다고 합니다.",
+                "📍태고의 끝: 대륙의 극동쪽 끝에 위치한 잊혀진 해안선입니다. 어디에도 괴물이나 유적, 복잡한 마법의 흔적은 없습니다. 오직 끝없이 밀려오는 규칙적인 파도 소리와 수평선 너머로 느릿하게 배를 젓는 어부만이 보일 뿐입니다.",
+                "📍시작의 도서관: 도시 전체가 하나의 거대한 도서관을 이루고 있는 학자들의 천국입니다. 대륙의 모든 지식이 모여 있지만, 지식을 보호하기 위한 강력한 '침묵의 마법'이 걸려 있어 이곳에서는 목소리를 낼 수 없습니다. 오직 문자로만 소통해야 하며, 규칙을 어기면 그림자 파수꾼에게 추방당합니다.",
+                "📍회색항구 오르카: 습하고 안개가 짙게 끼는 항구 마을입니다. 공식적인 기록에 남지 않는 물건들이 오가는 밀수꾼들의 은신처로 누군가에게는 기회의 땅이지만, 매일 밤 누군가 사라져도 이상하지 않은 무법지대입니다."
+            ];
+            const scene = places[Math.floor(Math.random() * places.length)];
+            pushLog(`<span style="color:#ffd700;">${scene}</span>`);
+        }
+
+        function generateTarget() {
+            const stats = ["생존", "무력", "기민", "통찰", "교섭"];
+            const stat = stats[Math.floor(Math.random() * stats.length)];
+            const target = Math.floor(Math.random() * 11) + 10;
+            db.ref('currentGoal').set({ stat, target });
+            pushLog(`▶ [${stat}] 능력이 필요하며, 목표값은 ${target}입니다.`);
+        }
+
+        function rollDice(charName) {
+            if (!currentGoal) return alert("목표값을 먼저 생성하세요!");
+            const dice = Math.floor(Math.random() * 20) + 1;
+            const bonus = statData[charName][currentGoal.stat];
+            const total = dice + bonus;
+            const success = total >= currentGoal.target;
+            pushLog(`▶ <b>${charName}</b>의 [${currentGoal.stat}] 주사위 ${dice} (합계 ${total}) ····· <span class="${success ? 'success' : 'fail'}">${success ? '성공' : '실패'}</span>`);
+        }
+
+        function showGuide() {
+    const guideMsg = `
+        <div style="padding: 10px; margin-top: 5px; font-size: 0.85em; background: rgba(0,0,0,0.1);">
+            <b>📜 스탯가이드 (최소1 ~ 최대5)</b><br><br>
+            • <b>🛡️생존</b>: 야영, 채집, 독 저항 및 험난한 환경 견디기<br>
+            • <b>⚔️무력</b>: 정면 대결, 물리적 파괴, 무기를 다루는 정도와 힘쓰기<br>
+            • <b>🐺기민</b>: 매복, 함정 회피, 도난 및 빠른 반응 속도<br>
+            • <b>📖통찰</b>: 속임수 간파, 조사, 마력의 활용<br>
+            • <b>🤝교섭</b>: 거래, 설득, 정보 수집 및 원만한 대화
+        </div>
+    `;
+    // 서버 공유 대신 본인 화면에만 바로 띄우고 싶다면 addLog를, 
+    // 모두에게 보이게 하고 싶다면 pushLog를 사용하세요.
+    pushLog(guideMsg); 
+}
+
+function clearLogs() {
+    if (confirm("정말로 모든 로그를 삭제하시겠습니까? (복구 불가능)")) {
+        // Firebase의 'logs' 경로에 있는 데이터를 null로 덮어씌워 삭제합니다.
+        db.ref('logs').set(null)
+            .then(() => {
+                alert("로그가 모두 초기화되었습니다.");
+            })
+            .catch((error) => {
+                alert("삭제 실패: " + error.message);
+            });
+            
+        // 목표값도 같이 지우고 싶다면 아래 줄 주석을 해제하세요.
+        // db.ref('currentGoal').set(null);
+    }
+}
+    </script>
+</body>
+</html>
