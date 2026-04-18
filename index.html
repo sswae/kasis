@@ -31,9 +31,69 @@
         .log-entry { margin-bottom: 15px; border-bottom: 1px solid rgba(242, 233, 213, 0.1); padding-bottom: 10px; word-break: keep-all; }
         .success { color: #82ff82; font-weight: bold; }
         .fail { color: #ff8282; font-weight: bold; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+        .modal-content { 
+            background: #e6d5ac; 
+            color: #4a3f35;
+            margin: 10% auto; padding: 25px; width: 80%; max-width: 400px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+            font-family: 'Noto Serif KR', serif;
+            font-size: 0.8em;
+        }
+.char-box h3 {
+    cursor: pointer;
+    color: #f2e9d5;
+    transition: all 0.5s ease; /* 부드럽게 변화하도록 설정 */
+}
+
+.char-box h3:hover {
+    color: #ffffff; /* 글자색을 흰색으로 살짝 밝게 */
+    text-shadow: 0 0 10px #e9bd5f; /* 황금빛으로 은은하게 빛나는 효과 */
+}
+
+/* 1. 이미지 중앙 정렬 및 기본 스타일 */
+.img.center-gfx {
+    display: flex;
+    justify-content: center; /* 가로 중앙 */
+    align-items: center;    /* 세로 중앙 */
+    margin: 10px 0;         /* 위아래 여백 (필요시 조절) */
+}
+
+.img.center-gfx img {
+    max-width: 100%;        /* 컨테이너를 넘지 않도록 */
+    height: auto;
+    
+    /* 2. 오퍼시티 조절 (약간 흐리게) */
+    opacity: 0.8;           /* 0.0(완전 투명) ~ 1.0(완전 불투명) 사이 값으로 조절하세요 */
+    
+    /* 3. 둥실둥실 애니메이션 적용 */
+    animation: floatGfx 3s ease-in-out infinite; /* 3초 동안, 부드럽게, 무한 반복 */
+}
+
+/* 둥실둥실 애니메이션 정의 (@keyframes) */
+@keyframes floatGfx {
+    0% {
+        transform: translateY(0px); /* 시작 위치 */
+    }
+    50% {
+        transform: translateY(5px); /* 위로 10px 이동 */
+    }
+    100% {
+        transform: translateY(0px); /* 다시 제자리로 */
+    }
+}
+        .close { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 20px; }
     </style>
 </head>
 <body>
+
+    <div id="profileModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div id="modal-body"></div>
+    </div>
+</div>
 
     <div class="main-wrapper">
         <div class="top-bar">
@@ -47,15 +107,16 @@
         <div class="container">
             <div class="star" style="top:25px; left:25px;">✷</div><div class="star" style="top:25px; right:25px;">✷</div>
             <h2>여정에 오신 것을 환영합니다...</h2>
+            <div class="img center-gfx"><img src="center.png"></div>
 
             <div class="chars">
                 <div class="char-box">
-                    <h3>이실 투크</h3>
+                    <h3 onclick="openModal('이실 투크')" style="cursor:pointer; color: #f2e9d5;">이실 투크</h3>
                     <div class="stat">🛡️생존 [3]</div> <div class="stat">⚔️무력 [3]</div> <div class="stat">🐺기민 [5]</div><br>
                     <div class="stat">📖통찰 [1]</div> <div class="stat">🤝교섭 [4]</div>
                 </div>
                 <div class="char-box">
-                    <h3>카시르</h3>
+                    <h3 onclick="openModal('카시르')" style="cursor:pointer; color: #f2e9d5;">카시르</h3>
                     <div class="stat">🛡️생존 [4]</div> <div class="stat">⚔️무력 [3]</div> <div class="stat">🐺기민 [5]</div><br>
                     <div class="stat">📖통찰 [3]</div> <div class="stat">🤝교섭 [1]</div>
                 </div>
@@ -223,6 +284,62 @@ function clearLogs() {
             
         // 목표값도 같이 지우고 싶다면 아래 줄 주석을 해제하세요.
         // db.ref('currentGoal').set(null);
+    }
+}
+
+// 캐릭터 정보를 불러오는 함수
+        const charInfo = {
+            "이실 투크": {
+                from: "대륙 서쪽",
+                info: "27 / 186cm / 80kg",
+                class: "레인저(원딜 위주)",
+                pers: "능청맞고 뻔뻔하다. 여유로운 성정이었으나 이런 외모가 되고 난 뒤엔 여유로운 '척'을 하는 데에 능해졌다. 생각보다 자신감이 부족한 편.",
+                etc: "일대의 알아주는 사냥꾼이었다. 태양 위로 나는 새도 맞출 수 있다는 꼬리표가 붙어 다닐 때쯤, 화살보다 오만함이 먼저 태양에 가닿았다. 여신의 번견을 사냥한 이실은 명실상부한 명궁이 되었다. 그리고 분노한 여신의 저주로 번견의 모습을 가지게 되었다.",
+                aim: "여신의 신전을 찾아 저주를 푸는 것, 지도가 담긴 목걸이를 되찾아오는 것"
+            },
+            "카시르": {
+                from: "대륙 북부",
+                info: "27 / 174 / 적당(마른 근육)",
+                class: "로그(근딜) 소마법을 이용한 서포팅과 근접전투",
+                pers: "덤덤충. 어지간해선 동요하지 않는다. 먹고사는것 외엔 별로 관심 없다. 이해득실은 철저히 따지는 편.",
+                etc: "뒷골목 출신, 팍팍하게 살아왔다. 애연/애주가. 의외로 동물은 좋아한다.",
+                aim: "골치아픈 임무를 무사히 달성한다, 무난하게 먹고 산다."
+            }
+        };
+
+        // 2. 캐릭터 정보를 불러오는 함수 (수정됨)
+        function openModal(name) {
+            const data = charInfo[name];
+            
+            if (data) {
+                const modalBody = document.getElementById('modal-body');
+                modalBody.innerHTML = `
+                    <h2 style="color:#684321; border-bottom: 1px solid #684321; margin-bottom:15px;">${name}</h2>
+                    <div style="line-height:1.6; font-size: 0.9em; text-align: left;">
+                        <p><b>출신:</b> ${data.from}</p>
+                        <p><b>정보:</b> ${data.info}</p>
+                        <p><b>담당:</b> ${data.class}</p>
+                        <p><b>성격:</b> ${data.pers}</p>
+                        <p><b>특이사항:</b> ${data.etc}</p>
+                        <p><b>개인목적:</b> ${data.aim}</p>
+                    </div>
+                `;
+                document.getElementById('profileModal').style.display = "block";
+            } else {
+                alert("해당 캐릭터 정보를 찾을 수 없습니다.");
+            }
+        }
+
+// 모달 닫기 함수
+function closeModal() {
+    document.getElementById('profileModal').style.display = "none";
+}
+
+// 화면 아무곳이나 눌러도 닫히게 하려면 (선택 사항)
+window.onclick = function(event) {
+    const modal = document.getElementById('profileModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
     }
 }
     </script>
