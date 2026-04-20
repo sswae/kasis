@@ -21,7 +21,7 @@
         .chars { display: flex; justify-content: space-around; margin-bottom: 20px; }
         .char-box { text-align: center; width: 45%; }
         .char-box h3 { font-family: 'Noto Serif KR', serif; margin-bottom: 10px; font-size: 1.4em; color: #f2e9d5; }
-        .stat { color: #e9bd5f; font-size: 0.85em; display: inline-block; margin: 2px 5px; }
+        .stat { color: #e9bd5f; font-size: 0.7em; display: inline-block; margin: 2px 5px; }
         .btns { display: flex; justify-content: center; gap: 8px; margin: 25px 0; flex-wrap: wrap; }
         button { background-color: #4a3f35; color: #f2e9d5; border: none; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 0.7em; transition: 0.3s; }
         button:hover { background-color: #684321; transform: translateY(-2px); }
@@ -52,23 +52,46 @@
     text-shadow: 0 0 10px #e9bd5f; /* 황금빛으로 은은하게 빛나는 효과 */
 }
 
-/* 1. 이미지 중앙 정렬 및 기본 스타일 */
-.img.center-gfx {
+/* 1. 이미지 및 말풍선 영역 스타일 수정 (한 줄 배치) */
+.center-gfx-container {
     display: flex;
-    justify-content: center; /* 가로 중앙 */
-    align-items: center;    /* 세로 중앙 */
-    margin: 10px 0;         /* 위아래 여백 (필요시 조절) */
+    flex-direction: row; /* 가로로 배치 (말풍선 왼쪽, 이미지 오른쪽) */
+    align-items: center;    /* 세로 중앙 정렬 */
+    justify-content: center; /* 가로 중앙 정렬 */
+    position: relative;
+    gap: 20px; /* 말풍선과 이미지 간격 */
 }
 
-.img.center-gfx img {
-    max-width: 100%;        /* 컨테이너를 넘지 않도록 */
+.center-gfx {
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+}
+
+.center-gfx img {
+    max-width: 100px; /* 이미지 크기 조절 */
     height: auto;
     
     /* 2. 오퍼시티 조절 (약간 흐리게) */
-    opacity: 0.8;           /* 0.0(완전 투명) ~ 1.0(완전 불투명) 사이 값으로 조절하세요 */
+    opacity: 0.8; 
     
     /* 3. 둥실둥실 애니메이션 적용 */
-    animation: floatGfx 3s ease-in-out infinite; /* 3초 동안, 부드럽게, 무한 반복 */
+    animation: floatGfx 3s ease-in-out infinite; 
+}
+
+/* 2. 말풍선 스타일 수정 (크기 확대 및 좌측 배치) */
+.speech-bubble {
+    background: #f2e9d5;
+    color: #433b2b;
+    padding: 15px 25px; /* 넉넉하게 키움 */
+    border-radius: 20px;
+    font-size: 0.7em; /* 폰트 크기 약간 확대 */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    white-space: normal; /* 줄바꿈 허용 */
+    max-width: 300px; /* 최대 너비 설정 */
+    text-align: left; /* 텍스트 좌측 정렬 */
+    position: relative;
+    /* 애니메이션 제거 */
 }
 
 /* 둥실둥실 애니메이션 정의 (@keyframes) */
@@ -83,12 +106,25 @@
         transform: translateY(0px); /* 다시 제자리로 */
     }
 }
+
+.extra-btns {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 10px 0;
+}
+.text-btn {
+    background: none !important; /* 기존 배경색 효과 제거 */
+    border: none !important;
+    color: #f2e9d5;
+    font-size: 0.9em;
+    cursor: pointer;
+    opacity: 0.8;
+}
         .close { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 20px; }
     </style>
 </head>
-<body>
-
-    <div id="profileModal" class="modal">
+<body onload="initSpeechBubble()"> <div id="profileModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <div id="modal-body"></div>
@@ -105,9 +141,21 @@
         </div>
 
         <div class="container">
-            <div class="star" style="top:25px; left:25px;">✷</div><div class="star" style="top:25px; right:25px;">✷</div>
-            <h2>여정에 오신 것을 환영합니다...</h2>
-            <div class="img center-gfx"><img src="center.png"></div>
+    <div class="star" style="top:25px; left:25px;">✷</div><div class="star" style="top:25px; right:25px;">✷</div>
+    <h2>여정에 오신 것을 환영합니다...</h2>
+    
+    <div class="extra-btns">
+        <button class="text-btn" onclick="flipCoin()">🪙</button>
+        <button class="text-btn" onclick="fortune()">🔮</button>
+        <button class="text-btn" onclick="talk()">💬</button>
+    </div>
+    
+    <div class="center-gfx-container">
+        <div id="speech-bubble" class="speech-bubble">방랑하는 자여 해답을 구하는가?</div>
+        <div class="center-gfx">
+            <img src="center.png">
+        </div>
+    </div>
 
             <div class="chars">
                 <div class="char-box">
@@ -124,11 +172,10 @@
 
             <div class="btns">
                 <button onclick="showGuide()">스탯가이드</button>
-                <button onclick="generateScene()">장면생성</button>
-                <button onclick="generateTarget()">목표값생성</button>
-                <button onclick="rollDice('이실 투크')">이실 주사위</button>
-                <button onclick="rollDice('카시르')">카시르 주사위</button>
-                <button onclick="clearLogs()" style="background-color: #632a2a;">로그 초기화</button>
+                <button onclick="handleRandomScene()">장면</button> <button onclick="generateTarget()">목표값</button>
+                <button onclick="rollDice('이실 투크')">이실🎲</button>
+                <button onclick="rollDice('카시르')">카시르🎲</button>
+                <button onclick="clearLogs()" style="background-color: #632a2a;">DEL</button>
             </div>
 
             <div id="log-area"></div>
@@ -221,21 +268,40 @@
 
         function pushLog(msg) { db.ref('logs').push(msg); }
 
+        const places = [
+            "📍강철 갈고리: 과거 드래곤과의 전쟁 때 전초기지로 쓰였던 길드 연합의 자치 구역입니다. 법보다 길드의 계약이 우선시되는 곳입니다. 임무를 배정받거나, 새로운 동료를 구하기 위해 대륙의 모든 길드원이 모여들어 항상 북적이고 시끄러운 술집들이 즐비합니다.",
+            "📍비명 지르는 협곡: 바람 소리가 비명처럼 들리는 좁고 깊은 협곡 지대입니다. 드래곤의 서식지로 알려져 있으며, 지형이 험해 매복 공격이 자주 일어나지만 대륙을 가로지르는 가장 빠른 이동 경로입니다.",
+            "📍성도 헬리오스: '태양'을 추앙하는 대륙의 심장부입니다. 왕궁과 대대로 혈통을 이어온 고위 귀족들이 거주합니다. 특별한 통행증이나 귀족의 보증 없이는 입성조차 불가능하며, 하층민의 출입을 철저히 금기시하는 폐쇄적인 공간입니다.",
+            "📍자유도시 램파트: 절벽 위에 세워진 난공불락의 상업 도시입니다. 지형적 이점을 이용해 단 한 번도 침공받지 않은 역사를 자랑하며, 비싼 의뢰비를 지급하는 상단이 모여 있습니다. 모든 문화와 유행은 램파트에서 시작됩니다.",
+            "📍침묵의 늪 칼리굴라: 발을 들이는 순간 마력이 중화되는 특수한 이끼가 가득한 습지입니다. 희귀한 약초가 자생하고 있어 마법사들에게는 가장 위험한 장소인 동시에 가장 매력적인 장소입니다.",
+            "📍철의요람 아이언홀드: 활화산 내부에 건설된 드워프들의 거주지입니다. 사방에 용암이 흐르며 공기는 숨이 막힐 듯 뜨겁지만, 대륙 최고의 무기와 갑옷이 이곳에서 제련됩니다. 외부인은 입구 근처의 열기조차 견디기 힘든 가혹한 환경입니다.",
+            "📍황금의 길: 겉보기에는 아름다운 황금빛 사막처럼 보이지만, 무엇이든 집어삼키는 끝없는 유사가 도사리는 죽음의 땅입니다. 전설에 따르면 모래 아래에 고대 왕국의 유적이 잠겨 있으며, 폭풍이 부는 날에만 그 입구가 드러난다고 합니다.",
+            "📍태고의 끝: 대륙의 극동쪽 끝에 위치한 잊혀진 해안선입니다. 어디에도 괴물이나 유적, 복잡한 마법의 흔적은 없습니다. 오직 끝없이 밀려오는 규칙적인 파도 소리와 수평선 너머로 느릿하게 배를 젓는 어부만이 보일 뿐입니다.",
+            "📍시작의 도서관: 도시 전체가 하나의 거대한 도서관을 이루고 있는 학자들의 천국입니다. 대륙의 모든 지식이 모여 있지만, 지식을 보호하기 위한 강력한 '침묵의 마법'이 걸려 있어 이곳에서는 목소리를 낼 수 없습니다. 오직 문자로만 소통해야 하며, 규칙을 어기면 그림자 파수꾼에게 추방당합니다.",
+            "📍회색항구 오르카: 습하고 안개가 짙게 끼는 항구 마을입니다. 공식적인 기록에 남지 않는 물건들이 오가는 밀수꾼들의 은신처로 누군가에게는 기회의 땅이지만, 매일 밤 누군가 사라져도 이상하지 않은 무법지대입니다."
+        ];
+
+        // 2. 랜덤 장면 생성 함수 수정
         function generateScene() {
-            const places = [
-                "📍강철 갈고리: 과거 드래곤과의 전쟁 때 전초기지로 쓰였던 길드 연합의 자치 구역입니다. 법보다 길드의 계약이 우선시되는 곳입니다. 임무를 배정받거나, 새로운 동료를 구하기 위해 대륙의 모든 길드원이 모여들어 항상 북적이고 시끄러운 술집들이 즐비합니다.",
-                "📍비명 지르는 협곡: 바람 소리가 비명처럼 들리는 좁고 깊은 협곡 지대입니다. 드래곤의 서식지로 알려져 있으며, 지형이 험해 매복 공격이 자주 일어나지만 대륙을 가로지르는 가장 빠른 이동 경로입니다.",
-                "📍성도 헬리오스: '태양'을 추앙하는 대륙의 심장부입니다. 왕궁과 대대로 혈통을 이어온 고위 귀족들이 거주합니다. 특별한 통행증이나 귀족의 보증 없이는 입성조차 불가능하며, 하층민의 출입을 철저히 금기시하는 폐쇄적인 공간입니다.",
-                "📍자유도시 램파트: 절벽 위에 세워진 난공불락의 상업 도시입니다. 지형적 이점을 이용해 단 한 번도 침공받지 않은 역사를 자랑하며, 비싼 의뢰비를 지급하는 상단이 모여 있습니다. 모든 문화와 유행은 램파트에서 시작됩니다.",
-                "📍침묵의 늪 칼리굴라: 발을 들이는 순간 마력이 중화되는 특수한 이끼가 가득한 습지입니다. 희귀한 약초가 자생하고 있어 마법사들에게는 가장 위험한 장소인 동시에 가장 매력적인 장소입니다.",
-                "📍철의요람 아이언홀드: 활화산 내부에 건설된 드워프들의 거주지입니다. 사방에 용암이 흐르며 공기는 숨이 막힐 듯 뜨겁지만, 대륙 최고의 무기와 갑옷이 이곳에서 제련됩니다. 외부인은 입구 근처의 열기조차 견디기 힘든 가혹한 환경입니다.",
-                "📍황금의 길: 겉보기에는 아름다운 황금빛 사막처럼 보이지만, 무엇이든 집어삼키는 끝없는 유사가 도사리는 죽음의 땅입니다. 전설에 따르면 모래 아래에 고대 왕국의 유적이 잠겨 있으며, 폭풍이 부는 날에만 그 입구가 드러난다고 합니다.",
-                "📍태고의 끝: 대륙의 극동쪽 끝에 위치한 잊혀진 해안선입니다. 어디에도 괴물이나 유적, 복잡한 마법의 흔적은 없습니다. 오직 끝없이 밀려오는 규칙적인 파도 소리와 수평선 너머로 느릿하게 배를 젓는 어부만이 보일 뿐입니다.",
-                "📍시작의 도서관: 도시 전체가 하나의 거대한 도서관을 이루고 있는 학자들의 천국입니다. 대륙의 모든 지식이 모여 있지만, 지식을 보호하기 위한 강력한 '침묵의 마법'이 걸려 있어 이곳에서는 목소리를 낼 수 없습니다. 오직 문자로만 소통해야 하며, 규칙을 어기면 그림자 파수꾼에게 추방당합니다.",
-                "📍회색항구 오르카: 습하고 안개가 짙게 끼는 항구 마을입니다. 공식적인 기록에 남지 않는 물건들이 오가는 밀수꾼들의 은신처로 누군가에게는 기회의 땅이지만, 매일 밤 누군가 사라져도 이상하지 않은 무법지대입니다."
-            ];
             const scene = places[Math.floor(Math.random() * places.length)];
             pushLog(`<span style="color:#ffd700;">${scene}</span>`);
+        }
+
+        // 2. 말풍선 내용 랜덤 업데이트 함수
+        function updateSpeechBubble(message) {
+            const speechBubble = document.getElementById('speech-bubble');
+            speechBubble.innerText = message;
+        }
+
+        // 3. 페이지 초기화 함수
+        function initSpeechBubble() {
+            // 이 함수는 onload 이벤트에 의해 실행되므로, HTML에 이미 설정된 초기 문구가 유지됩니다.
+            // 필요하다면 여기서 다른 초기화 작업을 할 수 있습니다.
+        }
+
+        // 2. 장면 버튼 클릭 시 랜덤 장면 생성 및 말풍선 업데이트
+        function handleRandomScene() {
+            generateScene();
         }
 
         function generateTarget() {
@@ -253,6 +319,13 @@
             const total = dice + bonus;
             const success = total >= currentGoal.target;
             pushLog(`▶ <b>${charName}</b>의 [${currentGoal.stat}] 주사위 ${dice} (합계 ${total}) ····· <span class="${success ? 'success' : 'fail'}">${success ? '성공' : '실패'}</span>`);
+            
+            // 주사위 결과에 따라 말풍선 내용 업데이트 (선택 사항)
+            if (success) {
+                updateSpeechBubble(`훌륭해, ${charName}! 멋지게 성공했군.`);
+            } else {
+                updateSpeechBubble(`다음 기회를 노려보게, ${charName}.`);
+            }
         }
 
         function showGuide() {
@@ -341,6 +414,52 @@ window.onclick = function(event) {
     if (event.target == modal) {
         modal.style.display = "none";
     }
+}
+
+function flipCoin() {
+    const results = [
+        "앞면이 나왔군.", 
+        "뒷면이 나왔군.", 
+        "옆으로 섰군.", 
+    ];
+
+    const randomIndex = Math.floor(Math.random() * results.length);
+    const result = results[randomIndex];
+
+    const msg = `동전을 던졌더니... ${result}`;
+    updateSpeechBubble(msg);
+}
+
+function fortune() {
+    const results = [
+        "[황금색]은 부를 상징하지. 하지만 조심하게, 황금을 쥔 손은 물에 가라앉기 마련이네. ", 
+        "[녹색]은 질투를 상징하지. 무언가를 얻으려면 반드시 다른 무언가를 내놓아야 한다네. 자네가 치러야 할 대가는 무엇이지?", 
+        "강렬한 [적색]이군. 피와 같은 불꽃은 전장에서의 승리를 예견하지. 다만, 불을 너무 오래 쬐었다간 모든 게 재가 될걸세.", 
+        "눈부신 [백색]이군. 모든 진실이 드러나겠지만, 눈이 멀지 않도록 조심하게. 때로는 모르는 것이 더 나을 때도 있는 법이니까.", 
+        "짙은 [흑색]이군. 무언가 크게 자라날 징조지만, 그 뿌리가 남의 피를 빨고 있네. 싹이 트는 것을 반기기 전에 그게 누구의 무덤 위에서 피어났는지 먼저 살피게.", 
+    ];
+
+    const randomIndex = Math.floor(Math.random() * results.length);
+    const result = results[randomIndex];
+
+    const msg = `???이 일렁이는 불꽃에 무언가 던져넣자 색이 바뀌었다. ${result}`;
+    updateSpeechBubble(msg);
+}
+
+function talk() {
+    const results = [
+        "이 늙은이를 괴롭히지 말게.", 
+        "어깨에 묻은 먼지가 참으로 무겁구먼. 자네가 걸어온 길의 무게인가, 아니면 앞으로 짊어질 업보의 무게인가?", 
+        "어제는 어제의 태양이, 오늘은 오늘의 태양이 뜨지. 어제의 자네와 오늘의 자네 또한 다른 사람이지.", 
+        "가끔은 인간이 운명마저 비트는 법이지. 그 날카로운 의지를 잃지 말게.", 
+        "길을 잃는 건 부끄러운 일이 아니야. 하지만 가야 할 곳을 잃어버리는 건 치명적이지.", 
+    ];
+
+    const randomIndex = Math.floor(Math.random() * results.length);
+    const result = results[randomIndex];
+
+    const msg = `${result}`;
+    updateSpeechBubble(msg);
 }
     </script>
 </body>
